@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login / Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 350px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    .form-group {
+      margin: 12px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .toggle-link {
+      text-align: center;
+      margin-top: 10px;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="formTitle">Login</h2>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="loginEmail" required />
+      </div>
+      <div class="form-group">
+        <label>Password:</label>
+        <input type="password" id="loginPassword" required />
+      </div>
+      <button type="submit">Login</button>
+      <div class="toggle-link" onclick="toggleForm()">Don't have an account? Register</div>
+    </form>
+
+    <!-- Registration Form -->
+    <form id="registerForm" style="display: none;">
+      <div class="form-group">
+        <label>First Name:</label>
+        <input type="text" id="firstName" required />
+      </div>
+      <div class="form-group">
+        <label>Last Name:</label>
+        <input type="text" id="lastName" required />
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="registerEmail" required />
+      </div>
+      <div class="form-group">
+        <label>Mobile Number:</label>
+        <input type="tel" id="mobile" required />
+      </div>
+      <div class="form-group">
+        <label>Unit:</label>
+        <input type="text" id="unit" required />
+      </div>
+      <div class="form-group">
+        <label>Role:</label>
+        <input type="text" id="role" />
+      </div>
+      <div class="form-group">
+        <label>Password:</label>
+        <input type="password" id="registerPassword" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password:</label>
+        <input type="password" id="confirmPassword" required />
+      </div>
+      <button type="submit">Register</button>
+      <div class="toggle-link" onclick="toggleForm()">Already have an account? Login</div>
+    </form>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const formTitle = document.getElementById("formTitle");
+
+    function toggleForm() {
+      if (loginForm.style.display === "none") {
+        loginForm.style.display = "block";
+        registerForm.style.display = "none";
+        formTitle.innerText = "Login";
+      } else {
+        loginForm.style.display = "none";
+        registerForm.style.display = "block";
+        formTitle.innerText = "Register";
+      }
+    }
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem("users")) || [];
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    registerForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const user = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        email: document.getElementById("registerEmail").value,
+        mobile: document.getElementById("mobile").value,
+        unit: document.getElementById("unit").value,
+        role: document.getElementById("role").value,
+        password: document.getElementById("registerPassword").value,
+        confirmPassword: document.getElementById("confirmPassword").value,
+      };
+
+      console.log(user);
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user),
+        });
+
+        const data = await res.json();
+
+        if (res.status === 201) {
+          alert("✅ Registration successful! Please login.");
+          toggleForm(); // switch to login form
+        } else if (res.status === 400) {
+          alert(`❌ ${data.message}`);
+        } else {
+          alert("⚠️ Unexpected error occurred. Please try again.");
+        }
+      } catch (err) {
+        console.error("🚨 Network error:", err);
+        alert("🚨 Network error. Please check your backend connection.");
+      }
+    });
+
+
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.status === 200) {
+          console.log("✅ Login successful. Saving token and user:");
+          console.log("Token:", data.token);
+          console.log("User:", data.user);
+
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          window.location.href = "Task.html";
+        } else {
+          alert(`❌ ${data.message}`);
+        }
+      } catch (error) {
+        console.error("🚨 Network error:", error);
+        alert("🚨 Network error. Please check your server.");
+      }
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+h1, h2 { color: #333; }
+input, select, textarea {
+  display: block;
+  margin-bottom: 10px;
+  padding: 6px;
+  width: 100%;
+}
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
