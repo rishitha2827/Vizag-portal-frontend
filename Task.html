@@ -2,56 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
-    }
-    header {
-      background: #333;
-      color: #fff;
-      padding: 10px 20px;
-      text-align: right;
-    }
-    .tabs {
-      display: flex;
-      background: #eee;
-      padding: 10px;
-      gap: 10px;
-    }
-    .tab-btn {
-      padding: 10px 20px;
-      cursor: pointer;
-      background: #ddd;
-      border: none;
-    }
-    .tab-btn.active {
-      background: #bbb;
-    }
-    .tab-content {
-      display: none;
-      padding: 20px;
-      background: #fff;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid #aaa;
-    }
-    th, td {
-      padding: 8px;
-      text-align: left;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
   <header>
@@ -104,9 +57,7 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody id="myRequestsTable">
-        <!-- Dynamically filled -->
-      </tbody>
+      <tbody id="myRequestsTable"></tbody>
     </table>
   </div>
 
@@ -123,67 +74,10 @@
           <th>Change Status</th>
         </tr>
       </thead>
-      <tbody id="assignedTable">
-        <!-- Dynamically filled -->
-      </tbody>
+      <tbody id="assignedTable"></tbody>
     </table>
   </div>
 
-  <script>
-    // ✅ Get user from localStorage
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    if (!user) {
-      alert("No user logged in. Redirecting to login page.");
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("userGreeting").textContent = `Hello, ${user.firstName} ${user.lastName}`;
-      document.getElementById("lastLogin").textContent = `Last logged in: ${new Date(user.lastLogin).toLocaleString()}`;
-    }
-
-    // Tab switching
-    const tabBtns = document.querySelectorAll(".tab-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
-
-    tabBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        tabBtns.forEach(b => b.classList.remove("active"));
-        tabContents.forEach(c => c.classList.remove("active"));
-
-        btn.classList.add("active");
-        document.getElementById(btn.dataset.tab).classList.add("active");
-      });
-    });
-
-    // Dummy employees for unit (simulate from backend)
-    const unitEmployees = {
-      VIIT: ["Principal VIIT"],
-      VIEW: ["Principal VIEW"],
-      VIPT: ["Employee A", "Employee B"],
-      WoS: ["Employee C"],
-      VSCPS: ["Employee D"],
-      "City Office": ["Suresh garu"]
-    };
-
-    document.getElementById("unitSelect").addEventListener("change", function () {
-      const unit = this.value;
-      const list = document.getElementById("employeeList");
-      list.innerHTML = "";
-      unitEmployees[unit].sort().forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        list.appendChild(option);
-      });
-    });
-
-    // Trigger on first load
-    document.getElementById("unitSelect").dispatchEvent(new Event("change"));
-
-    // Handle task submission
-    document.getElementById("requestForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      alert("Task submitted successfully! (Backend logic needed here)");
-    });
-  </script>
+  <script src="scripts/task.js"></script>
 </body>
 </html>

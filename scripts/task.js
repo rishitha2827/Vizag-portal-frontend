@@ -1,5 +1,5 @@
 // scripts/task.js
-const backendURL = 'http://localhost:5000';
+const backendURL = 'https://vizag-portal-backend.vercel.app/';
 const token = localStorage.getItem("token");
 const user = JSON.parse(localStorage.getItem("user"));
 
@@ -75,6 +75,7 @@ async function loadMyRequests() {
       <td>${task.assignTo.firstName} ${task.assignTo.lastName}</td>
       <td>${task.description}</td>
       <td>${new Date(task.createdAt).toLocaleString()}</td>
+      <td>${Math.floor((new Date() - new Date(task.createdAt)) / (1000 * 60 * 60 * 24))} days</td>
       <td>${task.status}</td>
     `;
   });
@@ -121,8 +122,9 @@ async function loadAssignedToMe() {
 
     row.innerHTML = `
       <td>${i + 1}</td>
-      <td>${task.description}</td>
       <td>${task.assignedBy.firstName} ${task.assignedBy.lastName}</td>
+      <td>${task.description}</td>
+      <td>${new Date(task.createdAt).toLocaleString()}</td>
       <td>${task.status}</td>
     `;
     row.insertCell().appendChild(statusDropdown);
