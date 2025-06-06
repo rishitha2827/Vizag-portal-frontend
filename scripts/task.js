@@ -1,146 +1,216 @@
-// scripts/task.js
-const backendURL = 'https://vizag-portal-backend.vercel.app/';
-const token = localStorage.getItem("token");
-const user = JSON.parse(localStorage.getItem("user"));
+const backendURL = 'https://vizag-portal-backend.vercel.app';
 
-if (!token || !user) {
-  alert("Unauthorized. Redirecting to login.");
-  window.location.href = "index.html";
+// Task Assignment Logic
+const assignToMap = {};
+const unitSelect = document.getElementById("unitSelect");
+
+if (unitSelect) {
+  unitSelect.addEventListener("change", async function () {
+    const token = localStorage.getItem("token");
+    const unit = this.value;
+    try {
+      const res = await fetch(`${backendURL}/api/tasks/assignees/${unit}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+
+      const datalist = document.getElementById("employeeList");
+      if (!datalist) return;
+
+      datalist.innerHTML = "";
+      data.sort((a, b) => a.name.localeCompare(b.name)).forEach(user => {
+        assignToMap[user.name] = user.id;
+        const option = document.createElement("option");
+        option.value = user.name;
+        datalist.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error fetching employees:", err);
+      alert("Failed to load assignees. Please check backend.");
+    }
+  });
+
+  // Trigger on first load
+  unitSelect.dispatchEvent(new Event("change"));
 }
 
-document.getElementById("userGreeting").textContent = `Hello, ${user.firstName} ${user.lastName}`;
-document.getElementById("lastLogin").textContent = `Last logged in: ${new Date(user.lastLogin).toLocaleString()}`;
-
-const assignToMap = {};
-
-// Load assignees when unit changes
-document.getElementById("unitSelect").addEventListener("change", async function () {
-  const unit = this.value;
-  const res = await fetch(`${backendURL}/api/tasks/assignees/${unit}`, {
-    headers: { Authorization: `Bearer ${token}` }
+// Task Submission
+const requestForm = document.getElementById("requestForm");
+if (requestForm) {
+  requestForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    
+    const token = localStorage.getItem("token");
+    const assignToName = document.getElementById("assignTo").value;
+    const description = document.getElementById("task").value;
+    
+    if (!assignToName || !description) {
+      alert("Please select an assignee and enter a description");
+      return;
+    }
+    
+    const assignToId = assignToMap[assignToName];
+    if (!assignToId) {
+      alert("Invalid assignee selected");
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${backendURL}/api/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          assignTo: assignToId,
+          description: description
+        })
+      });
+      
+      const data = await res.json();
+      if (res.status === 201) {
+        alert("Task created successfully!");
+        requestForm.reset();
+        window.refreshTaskLists();
+      } else {
+        alert(`Error: ${data.message || 'Failed to create task'}`);
+      }
+    } catch (error) {
+      console.error("Task creation error:", error);
+      alert("Failed to create task. Please try again.");
+    }
   });
-  const data = await res.json();
-  const datalist = document.getElementById("employeeList");
-  datalist.innerHTML = "";
-  data.forEach(user => {
-    assignToMap[user.name] = user.id;
-    const option = document.createElement("option");
-    option.value = user.name;
-    datalist.appendChild(option);
+}
+
+// Task List Management
+window.refreshTaskLists = async function() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  
+  try {
+    // Refresh "Raised by Me" tasks
+    const raisedByMeRes = await fetch(`${backendURL}/api/tasks/raised-by-me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const raisedByMeTasks = await raisedByMeRes.json();
+    renderTaskTable('myRequestsTable', raisedByMeTasks, false);
+    
+    // Refresh "Assigned to Me" tasks
+    const assignedToMeRes = await fetch(`${backendURL}/api/tasks/assigned-to-me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const assignedToMeTasks = await assignedToMeRes.json();
+    renderTaskTable('assignedTable', assignedToMeTasks, true);
+  } catch (error) {
+    console.error("Error refreshing task lists:", error);
+    alert("Failed to refresh tasks. Please try again.");
+  }
+};
+
+function renderTaskTable(tableId, tasks, isAssignedToMe) {
+  const tableBody = document.getElementById(tableId);
+  if (!tableBody) return;
+  
+  tableBody.innerHTML = '';
+  
+  if (!tasks || tasks.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td colspan="${isAssignedToMe ? 6 : 5}">No tasks found</td>`;
+    tableBody.appendChild(row);
+    return;
+  }
+  
+  tasks.forEach((task, index) => {
+    const row = document.createElement('tr');
+    const createdAt = new Date(task.createdAt);
+    const ageInDays = Math.floor((new Date() - createdAt) / (1000 * 60 * 60 * 24));
+    
+    if (isAssignedToMe) {
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${task.assignedBy?.firstName || 'Unknown'} ${task.assignedBy?.lastName || ''}</td>
+        <td>${task.description}</td>
+        <td>${createdAt.toLocaleDateString()}</td>
+        <td>${task.status || 'Pending'}</td>
+        <td>
+          <select class="status-select" data-task-id="${task._id}">
+            <option value="Pending" ${task.status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+          </select>
+        </td>
+      `;
+    } else {
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${task.assignTo?.firstName || 'Unknown'} ${task.assignTo?.lastName || ''}</td>
+        <td>${task.description}</td>
+        <td>${createdAt.toLocaleDateString()}</td>
+        <td>${ageInDays} day(s)</td>
+        <td>${task.status || 'Pending'}</td>
+      `;
+    }
+    
+    tableBody.appendChild(row);
   });
-});
+  
+  // Add event listeners for status changes
+  if (isAssignedToMe) {
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.addEventListener('change', async function() {
+        const taskId = this.getAttribute('data-task-id');
+        const newStatus = this.value;
+        const token = localStorage.getItem("token");
+        
+        try {
+          const response = await fetch(`${backendURL}/api/tasks/${taskId}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: newStatus })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            alert(data.message || 'Status updated successfully');
+            window.refreshTaskLists();
+          } else {
+            alert(data.message || 'Failed to update status');
+          }
+        } catch (error) {
+          console.error('Error updating status:', error);
+          alert('Failed to update status. Please try again.');
+        }
+      });
+    });
+  }
+}
 
-document.getElementById("unitSelect").dispatchEvent(new Event("change"));
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Display user info if available
+  const userData = localStorage.getItem('user');
+  if (userData) {
+    const user = JSON.parse(userData);
+    const greetingElement = document.getElementById('userGreeting');
+    if (greetingElement) {
+      greetingElement.textContent = `Welcome, ${user.firstName} ${user.lastName}`;
+    }
+    
+    // Display last login time
+    const lastLogin = localStorage.getItem('lastLogin');
+    const lastLoginElement = document.getElementById('lastLogin');
+    if (lastLoginElement) {
+      lastLoginElement.textContent = `Last login: ${new Date(lastLogin).toLocaleString()}`;
+    }
+  }
 
-// Submit task
-document.getElementById("requestForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("assignTo").value;
-  const description = document.getElementById("task").value;
-  const assignTo = assignToMap[name];
-
-  if (!assignTo) return alert("Please choose a valid employee from the list.");
-
-  const res = await fetch(`${backendURL}/api/tasks/create`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ assignTo, description })
-  });
-
-  const data = await res.json();
-  if (res.ok) {
-    alert("Task submitted successfully!");
-    document.getElementById("requestForm").reset();
-    loadMyRequests();
-  } else {
-    alert(data.message);
+  // Load tasks if on Task.html
+  if (window.location.pathname.endsWith('Task.html')) {
+    window.refreshTaskLists();
   }
 });
-
-// Load My Requests
-async function loadMyRequests() {
-  const res = await fetch(`${backendURL}/api/tasks/raised-by-me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const data = await res.json();
-  const table = document.getElementById("myRequestsTable");
-  table.innerHTML = "";
-  data.forEach((task, i) => {
-    const row = table.insertRow();
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${task.assignTo.firstName} ${task.assignTo.lastName}</td>
-      <td>${task.description}</td>
-      <td>${new Date(task.createdAt).toLocaleString()}</td>
-      <td>${Math.floor((new Date() - new Date(task.createdAt)) / (1000 * 60 * 60 * 24))} days</td>
-      <td>${task.status}</td>
-    `;
-  });
-}
-
-// Load Assigned To Me
-async function loadAssignedToMe() {
-  const res = await fetch(`${backendURL}/api/tasks/assigned-to-me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const data = await res.json();
-  const table = document.getElementById("assignedTable");
-  table.innerHTML = "";
-  data.forEach((task, i) => {
-    const row = table.insertRow();
-    const statusDropdown = document.createElement("select");
-    ["Yet to Start", "In Progress", "Completed"].forEach(s => {
-      const option = document.createElement("option");
-      option.value = s;
-      option.text = s;
-      if (s === task.status) option.selected = true;
-      statusDropdown.appendChild(option);
-    });
-
-    const updateBtn = document.createElement("button");
-    updateBtn.textContent = "Update";
-    updateBtn.onclick = async () => {
-      const newStatus = statusDropdown.value;
-      const updateRes = await fetch(`${backendURL}/api/tasks/${task._id}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (updateRes.ok) {
-        alert("Status updated successfully!");
-        loadAssignedToMe();
-      } else {
-        alert("Update failed");
-      }
-    };
-
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${task.assignedBy.firstName} ${task.assignedBy.lastName}</td>
-      <td>${task.description}</td>
-      <td>${new Date(task.createdAt).toLocaleString()}</td>
-      <td>${task.status}</td>
-    `;
-    row.insertCell().appendChild(statusDropdown);
-    row.insertCell().appendChild(updateBtn);
-  });
-}
-
-// Tab switching
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).classList.add("active");
-  });
-});
-
-loadMyRequests();
-loadAssignedToMe();

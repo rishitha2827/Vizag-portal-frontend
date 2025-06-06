@@ -2,14 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard</title>
-  <link rel="stylesheet" href="styles/style.css">
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    /* Add some basic styling for the dropdown */
+    select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
   <header>
     <div id="userGreeting"></div>
-    <div id="lastLogin" style="font-size: 0.85em; color: lightgray;"></div>
+    <div id="lastLogin" class="subtext"></div>
   </header>
 
   <div class="tabs">
@@ -19,65 +29,137 @@
     <button class="tab-btn" data-tab="assigned">Requests Assigned to Me</button>
   </div>
 
-  <div id="unit" class="tab-content active">
-    <label for="unitSelect">Select Unit:</label>
-    <select id="unitSelect">
-      <option value="VIIT">VIIT</option>
-      <option value="VIEW">VIEW</option>
-      <option value="VIPT">VIPT</option>
-      <option value="WoS">WoS</option>
-      <option value="VSCPS">VSCPS</option>
-      <option value="City Office">City Office</option>
-    </select>
-  </div>
+  <main>
+    <div id="unit" class="tab-content active">
+      <label for="unitSelect">Select Unit:</label>
+      <select id="unitSelect">
+        <option value="">-- Select Unit --</option>
+        <option value="VIIT">VIIT</option>
+        <option value="VIEW">VIEW</option>
+        <option value="VIPT">VIPT</option>
+        <option value="WoS">WoS</option>
+        <option value="VSCPS">VSCPS</option>
+        <option value="City Office">City Office</option>
+      </select>
+    </div>
 
-  <div id="raise" class="tab-content">
-    <form id="requestForm">
-      <label for="assignTo">Assign To:</label>
-      <input list="employeeList" id="assignTo" name="assignTo" required>
-      <datalist id="employeeList"></datalist>
+    <div id="raise" class="tab-content">
+      <form id="requestForm">
+        <label for="assignTo">Assign To:</label>
+        <select id="assignTo" name="assignTo" required>
+          <option value="">-- Select Employee --</option>
+          <!-- Employee options will be populated by JavaScript -->
+        </select>
 
-      <br><br>
-      <label for="task">Task Description (max 100 characters):</label><br>
-      <textarea id="task" name="task" maxlength="100" rows="3" required></textarea><br><br>
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+        <label for="task">Task Description (max 100 characters):</label>
+        <textarea id="task" name="task" maxlength="100" rows="3" required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
 
-  <div id="myRequests" class="tab-content">
-    <h3>Requests Raised by Me</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Assign To</th>
-          <th>Task Description</th>
-          <th>Raised On</th>
-          <th>Age of Task</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="myRequestsTable"></tbody>
-    </table>
-  </div>
+    <div id="myRequests" class="tab-content">
+      <h3>Requests Raised by Me</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Assign To</th>
+            <th>Task Description</th>
+            <th>Raised On</th>
+            <th>Age of Task</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="myRequestsTable"></tbody>
+      </table>
+    </div>
 
-  <div id="assigned" class="tab-content">
-    <h3>Requests Assigned to Me</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Assignor</th>
-          <th>Task</th>
-          <th>Raised On</th>
-          <th>Status</th>
-          <th>Change Status</th>
-        </tr>
-      </thead>
-      <tbody id="assignedTable"></tbody>
-    </table>
-  </div>
+    <div id="assigned" class="tab-content">
+      <h3>Requests Assigned to Me</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Assignor</th>
+            <th>Task</th>
+            <th>Raised On</th>
+            <th>Status</th>
+            <th>Change Status</th>
+          </tr>
+        </thead>
+        <tbody id="assignedTable"></tbody>
+      </table>
+    </div>
+  </main>
 
-  <script src="scripts/task.js"></script>
+  <script>
+    // Tab switching
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        tabContents.forEach(c => c.classList.remove("active"));
+
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Employee data by unit
+    const unitEmployees = {
+      VIIT: ["Principal VIIT"],
+      VIEW: ["Principal VIEW"],
+      VIPT: ["Employee A", "Employee B"],
+      WoS: ["Employee C"],
+      VSCPS: ["Employee D"],
+      "City Office": ["Suresh garu"]
+    };
+
+    // Function to populate employee dropdown
+    function populateEmployeeDropdown(unit) {
+      const assignToSelect = document.getElementById("assignTo");
+      
+      // Clear existing options except the first one
+      while (assignToSelect.options.length > 1) {
+        assignToSelect.remove(1);
+      }
+      
+      if (unit && unitEmployees[unit]) {
+        // Sort and add employees for the selected unit
+        unitEmployees[unit].sort().forEach(employee => {
+          const option = document.createElement("option");
+          option.value = employee;
+          option.textContent = employee;
+          assignToSelect.appendChild(option);
+        });
+      }
+    }
+
+    // Handle unit selection change
+    document.getElementById("unitSelect").addEventListener("change", function() {
+      populateEmployeeDropdown(this.value);
+    });
+
+    // Initialize with no employees (waiting for unit selection)
+    populateEmployeeDropdown(null);
+
+    // Handle task submission
+    document.getElementById("requestForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const assignTo = document.getElementById("assignTo").value;
+      const task = document.getElementById("task").value;
+      
+      if (!assignTo || !task) {
+        alert("Please select an employee and enter task description");
+        return;
+      }
+      
+      alert(`Task assigned to: ${assignTo}\nTask: ${task}`);
+      // Here you would typically send data to the server
+      document.getElementById("requestForm").reset();
+    });
+  </script>
 </body>
 </html>

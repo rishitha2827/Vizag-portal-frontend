@@ -1,47 +1,122 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4;
 }
+
 .container {
   background: white;
   padding: 20px;
   border-radius: 10px;
   width: 350px;
+  margin: 50px auto;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-h2 {
-  text-align: center;
+
+header {
+  background-color: #3f51b5;
+  color: white;
+  padding: 10px 20px;
+  text-align: right;
+  font-size: 16px;
 }
-.form-group {
-  margin: 12px 0;
+
+.subtext {
+  font-size: 12px;
+  color: #d1d1d1;
 }
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  background: #eee;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: #ccc;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.tab-btn.active {
+  background: #3f51b5;
+  color: white;
+}
+
+main {
+  padding: 20px;
+}
+
+.tab-content {
+  display: none;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.tab-content.active {
+  display: block;
+}
+
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-top: 10px;
+  font-weight: 500;
 }
-input {
+
+input, select, textarea {
   width: 100%;
   padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   box-sizing: border-box;
 }
+
+textarea {
+  resize: vertical;
+}
+
 button {
-  width: 100%;
-  padding: 10px;
-  background: #4285f4;
+  padding: 10px 16px;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 5px;
-  margin-top: 10px;
+  font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
-.toggle-link {
-  text-align: center;
-  margin-top: 10px;
-  color: #007bff;
-  cursor: pointer;
-  text-decoration: underline;
+
+button:hover {
+  background-color: #45a049;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  font-size: 14px;
+}
+
+table th {
+  background-color: #3f51b5;
+  color: white;
+  font-weight: bold;
 }
