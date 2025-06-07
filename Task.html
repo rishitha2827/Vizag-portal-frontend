@@ -143,8 +143,8 @@
         return window.location.href = "index.html";
       }
 
-      document.getElementById("userGreeting").textContent = Hello, ${user.firstName} ${user.lastName};
-      document.getElementById("lastLogin").textContent = Last logged in: ${new Date(user.lastLogin).toLocaleString()};
+      document.getElementById("userGreeting").textContent = `Hello, ${user.firstName} ${user.lastName}`;
+      document.getElementById("lastLogin").textContent = `Last logged in: ${new Date(user.lastLogin).toLocaleString()}`;
 
       document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -157,16 +157,16 @@
 
       async function loadUsersDropdown() {
         try {
-          const res = await fetch(${backendURL}/api/users, {
+          const res = await fetch(`${backendURL}/api/users`, {
             headers: {
-              Authorization: Bearer ${token}
+              Authorization: `Bearer ${token}`
             }
           });
           const data = await res.json();
           const dropdown = document.getElementById("assignTo");
           dropdown.innerHTML = '<option value="">-- Select an Employee --</option>';
           data.forEach(user => {
-            const fullName = ${user.firstName} ${user.lastName};
+            const fullName = `${user.firstName} ${user.lastName}`;
             assignToMap[fullName] = user._id;
             const option = document.createElement("option");
             option.value = fullName;
@@ -181,28 +181,28 @@
       }
 
       async function loadMyRequests() {
-        const res = await fetch(${backendURL}/api/tasks/raised-by-me, {
-          headers: { Authorization: Bearer ${token} }
+        const res = await fetch(`${backendURL}/api/tasks/raised-by-me`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         const table = document.getElementById("myRequestsTable");
         table.innerHTML = "";
         data.forEach((task, i) => {
           const row = table.insertRow();
-          row.innerHTML = 
+          row.innerHTML = `
             <td>${i + 1}</td>
             <td>${task.assignTo.firstName} ${task.assignTo.lastName}</td>
             <td>${task.description}</td>
             <td>${new Date(task.createdAt).toLocaleString()}</td>
             <td>${Math.floor((new Date() - new Date(task.createdAt)) / (1000 * 60 * 60 * 24))} days</td>
             <td>${task.status}</td>
-          ;
+          `;
         });
       }
 
       async function loadAssignedToMe() {
-        const res = await fetch(${backendURL}/api/tasks/assigned-to-me, {
-          headers: { Authorization: Bearer ${token} }
+        const res = await fetch(`${backendURL}/api/tasks/assigned-to-me`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         const table = document.getElementById("assignedTable");
@@ -222,10 +222,10 @@
           updateBtn.textContent = "Update";
           updateBtn.onclick = async () => {
             const newStatus = statusDropdown.value;
-            const updateRes = await fetch(${backendURL}/api/tasks/${task._id}, {
+            const updateRes = await fetch(`${backendURL}/api/tasks/${task._id}`, {
               method: 'PUT',
               headers: {
-                Authorization: Bearer ${token},
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({ status: newStatus })
@@ -238,13 +238,13 @@
             }
           };
 
-          row.innerHTML = 
+          row.innerHTML = `
             <td>${i + 1}</td>
             <td>${task.assignedBy.firstName} ${task.assignedBy.lastName}</td>
             <td>${task.description}</td>
             <td>${new Date(task.createdAt).toLocaleString()}</td>
             <td>${task.status}</td>
-          ;
+          `;
           row.insertCell().appendChild(statusDropdown);
           row.insertCell().appendChild(updateBtn);
         });
@@ -258,10 +258,10 @@
 
         if (!assignTo) return alert("❌ Please choose a valid employee.");
 
-        const res = await fetch(${backendURL}/api/tasks/create-task, {
+        const res = await fetch(`${backendURL}/api/tasks/create-task`, {
           method: 'POST',
           headers: {
-            Authorization: Bearer ${token},
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ assignTo, description })
@@ -273,7 +273,7 @@
           e.target.reset();
           loadMyRequests();
         } else {
-          alert(❌ ${data.message});
+          alert(`❌ ${data.message}`);
         }
       });
 
