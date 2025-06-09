@@ -2,24 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard</title>
-  <link rel="stylesheet" href="styles/main.css" />
   <style>
-    /* Add some basic styling for the dropdown */
-    select {
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      text-align: right;
+    }
+    .tabs {
+      display: flex;
+      background: #eee;
+      padding: 10px;
+      gap: 10px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #ddd;
+      border: none;
+    }
+    .tab-btn.active {
+      background: #bbb;
+    }
+    .tab-content {
+      display: none;
+      padding: 20px;
+      background: white;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    table {
       width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #aaa;
+    }
+    th, td {
       padding: 8px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <header>
     <div id="userGreeting"></div>
-    <div id="lastLogin" class="subtext"></div>
+    <div id="lastLogin" style="font-size: 0.85em; color: lightgray;"></div>
   </header>
 
   <div class="tabs">
@@ -29,136 +65,267 @@
     <button class="tab-btn" data-tab="assigned">Requests Assigned to Me</button>
   </div>
 
-  <main>
-    <div id="unit" class="tab-content active">
-      <label for="unitSelect">Select Unit:</label>
-      <select id="unitSelect">
-        <option value="">-- Select Unit --</option>
-        <option value="VIIT">VIIT</option>
-        <option value="VIEW">VIEW</option>
-        <option value="VIPT">VIPT</option>
-        <option value="WoS">WoS</option>
-        <option value="VSCPS">VSCPS</option>
-        <option value="City Office">City Office</option>
+  <div id="unit" class="tab-content active">
+    <label for="unitSelect">Select Unit:</label>
+    <select id="unitSelect">
+      <option value="VIIT">VIIT</option>
+      <option value="VIEW">VIEW</option>
+      <option value="VIPT">VIPT</option>
+      <option value="WoS">WoS</option>
+      <option value="VSCPS">VSCPS</option>
+      <option value="City Office">City Office</option>
+    </select>
+  </div>
+
+  <div id="raise" class="tab-content">
+    <form id="requestForm">
+      <label for="assignTo">Assign To:</label>
+      <select id="assignTo" required>
+        <option value="">-- Select an Employee --</option>
       </select>
-    </div>
 
-    <div id="raise" class="tab-content">
-      <form id="requestForm">
-        <label for="assignTo">Assign To:</label>
-        <select id="assignTo" name="assignTo" required>
-          <option value="">-- Select Employee --</option>
-          <!-- Employee options will be populated by JavaScript -->
-        </select>
+      <br><br>
+      <label for="task">Task Description (max 100 characters):</label><br>
+      <textarea id="task" name="task" maxlength="100" rows="3" required></textarea><br><br>
 
-        <label for="task">Task Description (max 100 characters):</label>
-        <textarea id="task" name="task" maxlength="100" rows="3" required></textarea>
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
 
-    <div id="myRequests" class="tab-content">
-      <h3>Requests Raised by Me</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Assign To</th>
-            <th>Task Description</th>
-            <th>Raised On</th>
-            <th>Age of Task</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="myRequestsTable"></tbody>
-      </table>
-    </div>
+  <div id="myRequests" class="tab-content">
+    <h3>Requests Raised by Me</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Assign To</th>
+          <th>Task Description</th>
+          <th>Raised On</th>
+          <th>Age of Task</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="myRequestsTable"></tbody>
+    </table>
+  </div>
 
-    <div id="assigned" class="tab-content">
-      <h3>Requests Assigned to Me</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Assignor</th>
-            <th>Task</th>
-            <th>Raised On</th>
-            <th>Status</th>
-            <th>Change Status</th>
-          </tr>
-        </thead>
-        <tbody id="assignedTable"></tbody>
-      </table>
-    </div>
-  </main>
+  <div id="assigned" class="tab-content">
+    <h3>Requests Assigned to Me</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Assignor</th>
+          <th>Task</th>
+          <th>Raised On</th>
+          <th>Status</th>
+          <th>Change Status</th>
+        </tr>
+      </thead>
+      <tbody id="assignedTable"></tbody>
+    </table>
+  </div>
 
   <script>
-    // Tab switching
-    const tabBtns = document.querySelectorAll(".tab-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
+    document.addEventListener("DOMContentLoaded", () => {
+      const backendURL = 'http://localhost:5000';
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
+      let assignToMap = {};
 
-    tabBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        tabBtns.forEach(b => b.classList.remove("active"));
-        tabContents.forEach(c => c.classList.remove("active"));
-
-        btn.classList.add("active");
-        document.getElementById(btn.dataset.tab).classList.add("active");
-      });
-    });
-
-    // Employee data by unit
-    const unitEmployees = {
-      VIIT: ["Principal VIIT"],
-      VIEW: ["Principal VIEW"],
-      VIPT: ["Employee A", "Employee B"],
-      WoS: ["Employee C"],
-      VSCPS: ["Employee D"],
-      "City Office": ["Suresh garu"]
-    };
-
-    // Function to populate employee dropdown
-    function populateEmployeeDropdown(unit) {
-      const assignToSelect = document.getElementById("assignTo");
-      
-      // Clear existing options except the first one
-      while (assignToSelect.options.length > 1) {
-        assignToSelect.remove(1);
-      }
-      
-      if (unit && unitEmployees[unit]) {
-        // Sort and add employees for the selected unit
-        unitEmployees[unit].sort().forEach(employee => {
-          const option = document.createElement("option");
-          option.value = employee;
-          option.textContent = employee;
-          assignToSelect.appendChild(option);
-        });
-      }
-    }
-
-    // Handle unit selection change
-    document.getElementById("unitSelect").addEventListener("change", function() {
-      populateEmployeeDropdown(this.value);
-    });
-
-    // Initialize with no employees (waiting for unit selection)
-    populateEmployeeDropdown(null);
-
-    // Handle task submission
-    document.getElementById("requestForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const assignTo = document.getElementById("assignTo").value;
-      const task = document.getElementById("task").value;
-      
-      if (!assignTo || !task) {
-        alert("Please select an employee and enter task description");
+      if (!token || !user) {
+        alert("Unauthorized. Redirecting to login.");
+        window.location.href = "index.html";
         return;
       }
-      
-      alert(`Task assigned to: ${assignTo}\nTask: ${task}`);
-      // Here you would typically send data to the server
-      document.getElementById("requestForm").reset();
+
+      document.getElementById("userGreeting").textContent = `Hello, ${user.firstName} ${user.lastName}`;
+      document.getElementById("lastLogin").textContent = `Last logged in: ${new Date(user.lastLogin).toLocaleString()}`;
+
+      // Tab switching
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(btn.dataset.tab).classList.add("active");
+        });
+      });
+
+      // Load employees based on unit selected
+      async function loadEmployeesForUnit(unit) {
+        try {
+          const res = await fetch(`${backendURL}/api/tasks/assignees/${unit}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!res.ok) throw new Error('Failed to fetch employees');
+          const employees = await res.json();
+
+          employees.sort((a, b) => a.name.localeCompare(b.name));
+          assignToMap = {};
+
+          const dropdown = document.getElementById("assignTo");
+          dropdown.innerHTML = '<option value="">-- Select an Employee --</option>';
+
+          employees.forEach(emp => {
+            const fullName = emp.name || (emp.firstName + ' ' + emp.lastName);
+            assignToMap[fullName] = emp.id || emp._id;
+            const option = document.createElement("option");
+            option.value = fullName;
+            option.textContent = fullName;
+            dropdown.appendChild(option);
+          });
+        } catch (err) {
+          alert("Failed to load employees for selected unit.");
+          console.error(err);
+        }
+      }
+
+      document.getElementById("unitSelect").addEventListener("change", (e) => {
+        loadEmployeesForUnit(e.target.value);
+      });
+
+      // Initial load for default unit
+      loadEmployeesForUnit(document.getElementById("unitSelect").value);
+
+      // Submit new task
+      document.getElementById("requestForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const assignToName = document.getElementById("assignTo").value.trim();
+        const description = document.getElementById("task").value.trim();
+        const assignTo = assignToMap[assignToName];
+
+        if (!assignTo) {
+          alert("Please select a valid employee to assign task.");
+          return;
+        }
+        if (!description) {
+          alert("Please enter a task description.");
+          return;
+        }
+
+        try {
+          const res = await fetch(`${backendURL}/api/tasks/create`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ assignTo, description })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            alert("Task submitted successfully!");
+            e.target.reset();
+            loadMyRequests();
+          } else {
+            alert(`Failed to submit task: ${data.message || 'Unknown error'}`);
+          }
+        } catch (err) {
+          alert("Error submitting task.");
+          console.error(err);
+        }
+      });
+
+      async function loadMyRequests() {
+        try {
+          const res = await fetch(`${backendURL}/api/tasks/raised-by-me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!res.ok) throw new Error('Failed to load your tasks');
+          const tasks = await res.json();
+
+          const table = document.getElementById("myRequestsTable");
+          table.innerHTML = "";
+          tasks.forEach((task, i) => {
+            const row = table.insertRow();
+            row.innerHTML = `
+              <td>${i + 1}</td>
+              <td>${task.assignTo.firstName} ${task.assignTo.lastName}</td>
+              <td>${task.description}</td>
+              <td>${new Date(task.createdAt).toLocaleString()}</td>
+              <td>${Math.floor((new Date() - new Date(task.createdAt)) / (1000 * 60 * 60 * 24))} days</td>
+              <td>${task.status}</td>
+            `;
+          });
+        } catch (err) {
+          alert("Failed to load your requests.");
+          console.error(err);
+        }
+      }
+
+      async function loadAssignedToMe() {
+        try {
+          const res = await fetch(`${backendURL}/api/tasks/assigned-to-me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!res.ok) throw new Error('Failed to load assigned tasks');
+          const tasks = await res.json();
+
+          const table = document.getElementById("assignedTable");
+          table.innerHTML = "";
+
+          tasks.forEach((task, i) => {
+            const row = table.insertRow();
+
+            const statusDropdown = document.createElement("select");
+            ["Yet to Start", "In Progress", "Completed"].forEach(status => {
+              const option = document.createElement("option");
+              option.value = status;
+              option.text = status;
+              if (status === task.status) option.selected = true;
+              statusDropdown.appendChild(option);
+            });
+
+            const updateBtn = document.createElement("button");
+            updateBtn.textContent = "Update";
+            updateBtn.onclick = async () => {
+              try {
+                const newStatus = statusDropdown.value;
+                const updateRes = await fetch(`${backendURL}/api/tasks/${task._id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                  });
+
+
+                if (updateRes.ok) {
+                  alert("Status updated!");
+                  loadAssignedToMe();
+                } else {
+                  alert("Failed to update status.");
+                }
+              } catch (err) {
+                alert("Error updating status.");
+                console.error(err);
+              }
+            };
+
+            row.innerHTML = `
+              <td>${i + 1}</td>
+              <td>${task.assignedBy.firstName} ${task.assignedBy.lastName}</td>
+              <td>${task.description}</td>
+              <td>${new Date(task.createdAt).toLocaleString()}</td>
+              <td>${task.status}</td>
+            `;
+            row.insertCell().appendChild(statusDropdown);
+            row.insertCell().appendChild(updateBtn);
+          });
+        } catch (err) {
+          alert("Failed to load assigned requests.");
+          console.error(err);
+        }
+      }
+
+      // Initial load
+      loadMyRequests();
+      loadAssignedToMe();
     });
   </script>
 </body>
