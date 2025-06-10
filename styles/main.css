@@ -3,15 +3,23 @@ body {
   margin: 0;
   padding: 0;
   background: #f4f4f4;
+  cursor: pointer;
+  width: 99.9vw;
+  height: 99.9vh;
+   display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
 }
 
 .container {
   background: white;
-  padding: 20px;
+  padding: 2rem;
   border-radius: 10px;
   width: 350px;
   margin: 50px auto;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0.5rem 0.5rem 0.5rem rgba(0,0,0,0.1);
 }
 
 header {
@@ -26,7 +34,13 @@ header {
   font-size: 12px;
   color: #d1d1d1;
 }
-
+.loginEmail,.loginPassword,.inp
+{
+  border: none;
+  outline: none;
+  border-bottom: 1px solid;
+  width: 25rem;
+}
 .tabs {
   display: flex;
   justify-content: center;
@@ -34,6 +48,15 @@ header {
   background: #eee;
   padding: 10px;
   border-bottom: 1px solid #ccc;
+}
+.container
+{
+  width: 25rem;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  /* width: 10%; */
 }
 
 .tab-btn {
@@ -45,11 +68,20 @@ header {
   font-weight: bold;
   transition: background 0.3s;
 }
+.submitbtn,.registerbtn
+{
+  margin-top: 1rem;
+  width: 100%;
+  background-color: #3f51b5;
+  color: white;
+}
 
 .tab-btn.active {
   background: #3f51b5;
   color: white;
+  width:25rem;
 }
+
 
 main {
   padding: 20px;
@@ -58,22 +90,31 @@ main {
 .tab-content {
   display: none;
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  width:25rem;
+  border: 1px solid red;
+  
+
 }
 
+.toggle-link
+{
+  margin-top: 1rem;
+  text-align: center;
+}
 .tab-content.active {
   display: block;
 }
-
+/* .dropdown
+{
+  width:25rem;
+} */
 label {
   display: block;
   margin-top: 10px;
   font-weight: 500;
 }
 
-input, select, textarea {
+input, textarea {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
@@ -83,13 +124,17 @@ input, select, textarea {
   box-sizing: border-box;
 }
 
+.dropdownmenu
+{
+  width: 30rem;
+}
 textarea {
   resize: vertical;
 }
 
 button {
   padding: 10px 16px;
-  background-color: #4caf50;
+  background-color: #3f51b5;
   color: white;
   border: none;
   border-radius: 5px;
@@ -99,7 +144,7 @@ button {
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #3f51b5;
 }
 
 table {
@@ -119,4 +164,10 @@ table th {
   background-color: #3f51b5;
   color: white;
   font-weight: bold;
+}
+
+.tab-content
+{
+    width: max-content;
+
 }

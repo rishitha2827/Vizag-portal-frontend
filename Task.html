@@ -17,24 +17,67 @@
       text-align: right;
     }
     .tabs {
+      width: 99.9vw;
       display: flex;
+      justify-content: center;
+      gap: 0.5rem;
       background: #eee;
       padding: 10px;
-      gap: 10px;
+  
     }
     .tab-btn {
       padding: 10px 20px;
       cursor: pointer;
-      background: #ddd;
+       background: #3f51b5;
+      font-weight: bolder;
+      color: white;
+      border-radius: 5px;
       border: none;
     }
     .tab-btn.active {
-      background: #bbb;
+      width: 15rem;
+      background: #3f51b5;
+      font-weight: bolder;
+      color: white;
     }
     .tab-content {
       display: none;
       padding: 20px;
       background: white;
+      width: max-content;
+      align-items: center;
+      padding: 3rem;
+      border-radius: 0.5rem;
+
+    }
+
+      .tab-contentt {
+      display: none;
+      padding: 20px;
+      background: white;
+      width: max-content;
+      align-items: center;
+      padding: 3rem;
+      border-radius: 0.5rem 5rem 5rem 0.5rem;
+
+    }
+
+    .labell
+    {
+      margin-bottom: 1rem;
+    }
+    .Container01{
+      width: 99vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding:5rem;
+    
+    }
+    .Sumbit1{
+      width: 100%;
+      background-color:#3f51b5;
+      color: white;
     }
     .tab-content.active {
       display: block;
@@ -66,8 +109,11 @@
   </div>
 
   <div id="unit" class="tab-content active">
-    <label for="unitSelect">Select Unit:</label>
-    <select id="unitSelect">
+    <label for="unitSelect" class="labell">Select Unit:</label>
+    <br>
+    <br>
+    <select id="unitSelect" class="dropdownmenu">
+      <option value="VIIT">Please Select Atleast One Unit</option>
       <option value="VIIT">VIIT</option>
       <option value="VIEW">VIEW</option>
       <option value="VIPT">VIPT</option>
@@ -77,20 +123,29 @@
     </select>
   </div>
 
+
+
+
+
+
+<section class="Container01">
   <div id="raise" class="tab-content">
     <form id="requestForm">
       <label for="assignTo">Assign To:</label>
-      <select id="assignTo" required>
+      <br>
+      <select id="assignTo"  style="width: 25rem;" required>
         <option value="">-- Select an Employee --</option>
       </select>
 
+
       <br><br>
       <label for="task">Task Description (max 100 characters):</label><br>
-      <textarea id="task" name="task" maxlength="100" rows="3" required></textarea><br><br>
+      <textarea id="task" name="task" maxlength="100" rows="15" cols="50" required></textarea><br><br>
 
-      <button type="submit">Submit</button>
+      <button type="submit" class="Sumbit1">Submit</button>
     </form>
   </div>
+  </section>
 
   <div id="myRequests" class="tab-content">
     <h3>Requests Raised by Me</h3>
@@ -108,7 +163,7 @@
       <tbody id="myRequestsTable"></tbody>
     </table>
   </div>
-
+<section class="container01">
   <div id="assigned" class="tab-content">
     <h3>Requests Assigned to Me</h3>
     <table>
@@ -125,6 +180,8 @@
       <tbody id="assignedTable"></tbody>
     </table>
   </div>
+
+  </section>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -206,7 +263,7 @@
         }
 
         try {
-          const res = await fetch(`${backendURL}/api/tasks/create`, {
+          const res = await fetch(`${backendURL}/api/tasks/create-task`, {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${token}`,
