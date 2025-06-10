@@ -1,4 +1,4 @@
-const backendURL = 'http://localhost:5000'
+const backendURL = 'https://vizag-portal-backend.vercel.app'
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const formTitle = document.getElementById("formTitle");
