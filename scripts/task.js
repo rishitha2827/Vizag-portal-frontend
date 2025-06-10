@@ -1,4 +1,4 @@
-const backendURL = 'https://vercel.com/rishithas-projects-00318a93/vizag-portal-backend';
+const backendURL = 'https://vizag-portal-backend.vercel.app';
 const token = localStorage.getItem("token");
 const user = JSON.parse(localStorage.getItem("user"));
 
